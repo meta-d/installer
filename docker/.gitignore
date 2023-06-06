@@ -1,0 +1,12 @@
+# compiled output
+./dist
+./tmp
+./out-tsc
+./documentation
+./be*
+./fe*
+./nginx/log
+.env
+
+# dependencies
+./node_modules
