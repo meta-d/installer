@@ -6,6 +6,7 @@
 ./be*
 ./fe*
 ./nginx/log
+/doris
 .env
 
 # dependencies
