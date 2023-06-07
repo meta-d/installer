@@ -151,7 +151,7 @@ spec:
       restartPolicy: Always
       containers:
         - name: metad-olap
-          image: metadc/metad-olap:1.0.0-rc.36
+          image: metadc/metad-olap:1.0.0
           ports:
             - containerPort: 8080
               protocol: TCP

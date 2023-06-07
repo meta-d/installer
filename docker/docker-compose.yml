@@ -34,7 +34,7 @@ services:
     networks:
       - overlay
   olap:
-    image: metadc/metad-olap:1.0.0-rc.36
+    image: metadc/metad-olap:1.0.0
     container_name: metad-olap
     mem_limit: 1024m
     restart: always
