@@ -48,9 +48,10 @@ services:
     networks:
       - overlay
   api:
-    image: metadc/metad-api:1.3.8
+    image: metadc/metad-api:1.4.0
     container_name: metad-api
     environment:
+      INSTALLATION_MODE: standalone
       HOST: ${API_HOST:-api}
       PORT: 3000
       NODE_ENV: ${NODE_ENV:-development}
@@ -60,6 +61,7 @@ services:
       OLAP_HOST: olap
       OLAP_PORT: 8080
       API_BASE_URL: ${API_BASE_URL:-http://localhost:3000}
+      DEMO: false
       SENTRY_DSN: ${SENTRY_DSN:-}
       LOGGER_LEVEL: ${LOGGER_LEVEL:-info}
     env_file:
@@ -78,7 +80,7 @@ services:
     networks:
       - overlay
   webapp:
-    image: metadc/metad-webapp:1.3.8
+    image: metadc/metad-webapp:1.4.0
     container_name: metad-webapp
     environment:
       HOST: ${WEB_HOST:-webapp}
