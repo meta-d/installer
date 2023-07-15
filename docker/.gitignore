@@ -9,6 +9,10 @@
 /doris
 /public
 .env
+nginx/log/
 
 # dependencies
 ./node_modules
+
+# volumes
+starrocks/

@@ -1,42 +1,23 @@
 version: '3'
 services:
   fe:
-    image: "apache/doris:1.2.2-fe-x86_64"
+    image: starrocks/allin1-ubuntu:2.5.4
     container_name: "metad-fe"
     hostname: "fe"
-    environment:
-      - FE_SERVERS=fe1:172.20.80.2:9010
-      - FE_ID=1
     ports:
       - 8030:8030
       - 9030:9030
-    volumes:
-      - ./doris/fe/doris-meta:/opt/apache-doris/fe/doris-meta
-      - ./doris/fe/conf:/opt/apache-doris/fe/conf
-      - ./doris/fe/log:/opt/apache-doris/fe/log
-    networks:
-      doris_net:
-        ipv4_address: 172.20.80.2
-  be:
-    image: "apache/doris:1.2.2-be-x86_64"
-    container_name: "metad-be"
-    hostname: "be"
-    depends_on:
-      - fe
-    environment:
-      - FE_SERVERS=fe1:172.20.80.2:9010
-      - BE_ADDR=172.20.80.3:9050
-      - DORIS_ROOT_PASS=${DORIS_ROOT_PASS:-}
-    ports:
       - 8040:8040
     volumes:
-      - ./doris/be/storage:/opt/apache-doris/be/storage
-      - ./doris/be/conf:/opt/apache-doris/be/conf
-      - ./doris/be/log:/opt/apache-doris/be/log
+      - ./starrocks/fe/meta:/opt/apache-doris/fe/meta
+      - ./starrocks/fe/log:/data/deploy/starrocks/fe/log
+      - ./starrocks/fe/conf:/data/deploy/starrocks/fe/conf
+      - ./starrocks/be/storage:/data/deploy/starrocks/be/storage
+      - ./starrocks/be/log:/data/deploy/starrocks/be/log
+      - ./starrocks/be/conf:/data/deploy/starrocks/be/conf
       - ./initdb.d/:/docker-entrypoint-initdb.d/
     networks:
-      doris_net:
-        ipv4_address: 172.20.80.3
+      - starrocks_net
   db:
     image: postgres:12-alpine
     container_name: metad-db
@@ -54,8 +35,6 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./initdb.d/:/docker-entrypoint-initdb.d/:ro
-    # ports:
-    #     - ${DB_PORT:-5432}:5432
     networks:
       - overlay
   redis:
@@ -64,8 +43,6 @@ services:
     mem_limit: 100m
     restart: unless-stopped
     command: ["sh", "-c", "redis-server --requirepass $${REDIS_PASSWORD}"]
-    # ports:
-    #     - "6379:6379"
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
     networks:
@@ -74,9 +51,16 @@ services:
     image: metadc/metad-olap:1.0.0
     container_name: metad-olap
     restart: unless-stopped
+    healthcheck:
+      test: curl -m 5 --silent --fail --request GET http://localhost:8080/ | jq --exit-status -n 'inputs | if has("status") then .status=="UP" else false end' > /dev/null || exit 1
+      interval: 10s
+      timeout: 2s
+      retries: 10
+    ports:
+      - 8080:8080
     links:
       - db:${DB_HOST:-db}
-      - fe:${DORIS_HOST:-doris}
+      - fe:starrocks-fe
     environment:
       OLAP_REDIS_DATABASE: 1
       OLAP_REDIS_HOST: "redis"
@@ -84,12 +68,12 @@ services:
       OLAP_REDIS_PASSWORD: ${REDIS_PASSWORD:-}
     networks:
       - overlay
-      - doris_net
+      - starrocks_net
   api:
     image: registry.cn-hangzhou.aliyuncs.com/metad/metad-api:1.5.0
     container_name: metad-api
     environment:
-      INSTALLATION_MODE: with-doris
+      INSTALLATION_MODE: with-starrocks
       HOST: ${API_HOST:-api}
       PORT: 3000
       NODE_ENV: ${NODE_ENV:-development}
@@ -100,13 +84,13 @@ services:
       OLAP_PORT: 8080
       API_BASE_URL: ${API_BASE_URL:-http://localhost:3000}
       DEMO: ${DEMO:-true}
-      DORIS_HOST: ${DORIS_HOST:-doris}
-      DORIS_PORT: 9030
-      DORIS_USER: ${DORIS_USER:-root}
-      DORIS_PASS: ${DORIS_PASS:-}
-      # DORIS_DATABASE: ${DORIS_DATABASE:-demo}
-      DORIS_API_HOST: doris-be
-      DORIS_API_PORT: 8040
+      STARROCKS_VERSION: 2.5
+      STARROCKS_HOST: starrocks-fe
+      STARROCKS_PORT: 9030
+      STARROCKS_USER: ${STARROCKS_USER:-root}
+      STARROCKS_PASS: ${STARROCKS_PASS:-}
+      # STARROCKS_DATABASE: ${STARROCKS_DATABASE:-demo}
+      STARROCKS_API_PORT: 8040
       SENTRY_DSN: ${SENTRY_DSN:-}
       LOGGER_LEVEL: ${LOGGER_LEVEL:-info}
     env_file:
@@ -118,15 +102,14 @@ services:
       - redis
     links:
       - db:${DB_HOST:-db}
-      - fe:${DORIS_HOST:-doris}
-      - be:doris-be
+      - fe:starrocks-fe
     ports:
       - ${API_PORT:-3000}:3000
     volumes:
       - ./public:/srv/pangolin/apps/
     networks:
       - overlay
-      - doris_net
+      - starrocks_net
   webapp:
     image: registry.cn-hangzhou.aliyuncs.com/metad/metad-webapp:1.5.0
     container_name: metad-webapp
@@ -157,7 +140,7 @@ services:
 networks:
   overlay:
     driver: bridge
-  doris_net:
+  starrocks_net:
     ipam:
       config:
         - subnet: 172.20.80.0/16
