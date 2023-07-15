@@ -15,4 +15,7 @@ nginx/log/
 ./node_modules
 
 # volumes
-starrocks/
+starrocks/fe/log
+starrocks/fe/meta
+starrocks/be/log
+starrocks/be/storage
