@@ -1,8 +1,21 @@
 version: '3'
+
+networks:
+  overlay:
+    driver: bridge
+  starrocks_net:
+    ipam:
+      config:
+        - subnet: 172.20.80.0/16
+volumes:
+  postgres_data:
+
 services:
-  fe:
-    image: starrocks/allin1-ubuntu:2.5.4
-    container_name: "metad-fe"
+  starrocks:
+    # image: starrocks/allin1-ubuntu:2.5.4
+    build:
+      context: ./starrocks
+    container_name: "metad-starrocks"
     hostname: "fe"
     ports:
       - 8030:8030
@@ -11,10 +24,10 @@ services:
     volumes:
       - ./starrocks/fe/meta:/opt/apache-doris/fe/meta
       - ./starrocks/fe/log:/data/deploy/starrocks/fe/log
-      - ./starrocks/fe/conf:/data/deploy/starrocks/fe/conf
+      # - ./starrocks/fe/conf:/data/deploy/starrocks/fe/conf
       - ./starrocks/be/storage:/data/deploy/starrocks/be/storage
       - ./starrocks/be/log:/data/deploy/starrocks/be/log
-      - ./starrocks/be/conf:/data/deploy/starrocks/be/conf
+      # - ./starrocks/be/conf:/data/deploy/starrocks/be/conf
       - ./initdb.d/:/docker-entrypoint-initdb.d/
     networks:
       - starrocks_net
@@ -60,7 +73,6 @@ services:
       - 8080:8080
     links:
       - db:${DB_HOST:-db}
-      - fe:starrocks-fe
     environment:
       OLAP_REDIS_DATABASE: 1
       OLAP_REDIS_HOST: "redis"
@@ -84,13 +96,13 @@ services:
       OLAP_PORT: 8080
       API_BASE_URL: ${API_BASE_URL:-http://localhost:3000}
       DEMO: ${DEMO:-true}
-      STARROCKS_VERSION: 2.5
-      STARROCKS_HOST: starrocks-fe
-      STARROCKS_PORT: 9030
+      STARROCKS_VERSION: 2.3
+      STARROCKS_HOST: ${STARROCKS_HOST:-metad-starrocks}
+      STARROCKS_PORT: ${STARROCKS_PORT:-9030}
       STARROCKS_USER: ${STARROCKS_USER:-root}
       STARROCKS_PASS: ${STARROCKS_PASS:-}
       # STARROCKS_DATABASE: ${STARROCKS_DATABASE:-demo}
-      STARROCKS_API_PORT: 8040
+      STARROCKS_API_PORT: ${STARROCKS_API_PORT:-8040}
       SENTRY_DSN: ${SENTRY_DSN:-}
       LOGGER_LEVEL: ${LOGGER_LEVEL:-info}
     env_file:
@@ -102,7 +114,6 @@ services:
       - redis
     links:
       - db:${DB_HOST:-db}
-      - fe:starrocks-fe
     ports:
       - ${API_PORT:-3000}:3000
     volumes:
@@ -136,13 +147,3 @@ services:
       - ${WEBAPP_PORT:-80}:4200
     networks:
       - overlay
-
-networks:
-  overlay:
-    driver: bridge
-  starrocks_net:
-    ipam:
-      config:
-        - subnet: 172.20.80.0/16
-volumes:
-  postgres_data:
