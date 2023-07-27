@@ -1,4 +1,12 @@
 version: '3'
+name: 'metad-analytics-cloud'
+
+networks:
+  overlay:
+    driver: bridge
+volumes:
+  postgres_data:
+
 services:
   db:
     image: postgres:12-alpine
@@ -17,18 +25,31 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./initdb.d/:/docker-entrypoint-initdb.d/:ro
-    # ports:
-    #     - ${DB_PORT:-5432}:5432
     networks:
       - overlay
+  adminer:
+    image: adminer
+    container_name: metad-adminer
+    restart: always
+    depends_on:
+        - db
+    links:
+        - db:${DB_HOST:-db}
+    environment:
+        ADMINER_DEFAULT_DB_DRIVER: pgsql
+        ADMINER_DEFAULT_DB_HOST: ${DB_HOST:-db}
+        ADMINER_DEFAULT_DB_NAME: ${DB_NAME:-postgres}
+        ADMINER_DEFAULT_DB_PASSWORD: ${DB_PASS:-root}
+    ports:
+        - '8084:8080'
+    networks:
+        - overlay
   redis:
     image: redis:6-alpine
     container_name: metad-redis
     mem_limit: 100m
     restart: unless-stopped
     command: ["sh", "-c", "redis-server --requirepass $${REDIS_PASSWORD}"]
-    # ports:
-    #     - "6379:6379"
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
     networks:
@@ -37,6 +58,11 @@ services:
     image: metadc/metad-olap:1.0.0
     container_name: metad-olap
     restart: unless-stopped
+    healthcheck:
+      test: curl -m 5 --silent --fail --request GET http://localhost:8080/ | jq --exit-status -n 'inputs | if has("status") then .status=="UP" else false end' > /dev/null || exit 1
+      interval: 10s
+      timeout: 2s
+      retries: 10
     links:
       - db:${DB_HOST:-db}
     environment:
@@ -47,10 +73,10 @@ services:
     networks:
       - overlay
   api:
-    image: metadc/metad-api:1.4.0
+    image: registry.cn-hangzhou.aliyuncs.com/metad/metad-api:1.5.0
     container_name: metad-api
     environment:
-      INSTALLATION_MODE: standalone
+      INSTALLATION_MODE: ${INSTALLATION_MODE:-standalone}
       HOST: ${API_HOST:-api}
       PORT: 3000
       NODE_ENV: ${NODE_ENV:-development}
@@ -60,7 +86,7 @@ services:
       OLAP_HOST: olap
       OLAP_PORT: 8080
       API_BASE_URL: ${API_BASE_URL:-http://localhost:3000}
-      DEMO: false
+      DEMO: ${DEMO:-false}
       SENTRY_DSN: ${SENTRY_DSN:-}
       LOGGER_LEVEL: ${LOGGER_LEVEL:-info}
     env_file:
@@ -79,7 +105,7 @@ services:
     networks:
       - overlay
   webapp:
-    image: metadc/metad-webapp:1.4.0
+    image: registry.cn-hangzhou.aliyuncs.com/metad/metad-webapp:1.5.0
     container_name: metad-webapp
     environment:
       HOST: ${WEB_HOST:-webapp}
@@ -104,9 +130,3 @@ services:
       - ${WEBAPP_PORT:-80}:4200
     networks:
       - overlay
-
-networks:
-  overlay:
-    driver: bridge
-volumes:
-  postgres_data:
