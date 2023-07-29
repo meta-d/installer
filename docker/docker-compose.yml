@@ -27,23 +27,6 @@ services:
       - ./initdb.d/:/docker-entrypoint-initdb.d/:ro
     networks:
       - overlay
-  adminer:
-    image: adminer
-    container_name: metad-adminer
-    restart: always
-    depends_on:
-        - db
-    links:
-        - db:${DB_HOST:-db}
-    environment:
-        ADMINER_DEFAULT_DB_DRIVER: pgsql
-        ADMINER_DEFAULT_DB_HOST: ${DB_HOST:-db}
-        ADMINER_DEFAULT_DB_NAME: ${DB_NAME:-postgres}
-        ADMINER_DEFAULT_DB_PASSWORD: ${DB_PASS:-root}
-    ports:
-        - '8084:8080'
-    networks:
-        - overlay
   redis:
     image: redis:6-alpine
     container_name: metad-redis
