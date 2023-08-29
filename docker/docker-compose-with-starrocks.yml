@@ -79,7 +79,7 @@ services:
       - overlay
       - starrocks_net
   api:
-    image: registry.cn-hangzhou.aliyuncs.com/metad/metad-api:1.5.0
+    image: registry.cn-hangzhou.aliyuncs.com/metad/metad-api:1.6.9
     container_name: metad-api
     environment:
       INSTALLATION_MODE: with-starrocks
@@ -119,7 +119,7 @@ services:
       - overlay
       - starrocks_net
   webapp:
-    image: registry.cn-hangzhou.aliyuncs.com/metad/metad-webapp:1.5.0
+    image: registry.cn-hangzhou.aliyuncs.com/metad/metad-webapp:1.6.9
     container_name: metad-webapp
     environment:
       HOST: ${WEB_HOST:-webapp}
