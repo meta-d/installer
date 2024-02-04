@@ -1,10 +1,10 @@
 version: '3'
-name: 'ocap-with-doris'
+name: ocap-with-doris
 
 services:
   fe:
     image: "apache/doris:1.2.2-fe-arm"
-    container_name: "metad-fe"
+    container_name: ocap-fe
     hostname: "fe"
     environment:
       - FE_SERVERS=fe1:172.20.80.2:9010
@@ -21,7 +21,7 @@ services:
         ipv4_address: 172.20.80.2
   be:
     image: "apache/doris:1.2.2-be-arm"
-    container_name: "metad-be"
+    container_name: ocap-be
     hostname: "be"
     depends_on:
       - fe
@@ -41,7 +41,7 @@ services:
         ipv4_address: 172.20.80.3
   db:
     image: postgres:12-alpine
-    container_name: metad-db
+    container_name: ocap-db
     restart: always
     environment:
       POSTGRES_DB: ${DB_NAME:-postgres}
@@ -62,7 +62,7 @@ services:
       - overlay
   redis:
     image: redis:6-alpine
-    container_name: metad-redis
+    container_name: ocap-redis
     mem_limit: 100m
     restart: unless-stopped
     command: ["sh", "-c", "redis-server --requirepass $${REDIS_PASSWORD}"]
@@ -74,7 +74,7 @@ services:
       - overlay
   olap:
     image: metadc/metad-olap:1.0.0
-    container_name: metad-olap
+    container_name: ocap-olap
     restart: unless-stopped
     links:
       - db:${DB_HOST:-db}
@@ -89,7 +89,7 @@ services:
       - doris_net
   api:
     image: registry.cn-hangzhou.aliyuncs.com/metad/ocap-api-demo:latest
-    container_name: metad-api
+    container_name: ocap-api
     environment:
       INSTALLATION_MODE: with-doris
       HOST: ${API_HOST:-api}
@@ -131,7 +131,7 @@ services:
       - doris_net
   webapp:
     image: registry.cn-hangzhou.aliyuncs.com/metad/ocap-webapp-demo:latest
-    container_name: metad-webapp
+    container_name: ocap-webapp
     environment:
       HOST: ${WEB_HOST:-webapp}
       PORT: 4200

@@ -8,9 +8,9 @@ volumes:
   postgres_data:
 
 services:
-    db:
+  db:
     image: postgres:12-alpine
-    container_name: metad-db
+    container_name: ocap-db
     restart: always
     environment:
       POSTGRES_DB: ${DB_NAME:-postgres}
@@ -29,7 +29,7 @@ services:
       - overlay
   redis:
     image: redis:6-alpine
-    container_name: metad-redis
+    container_name: ocap-redis
     mem_limit: 100m
     restart: unless-stopped
     command: ["sh", "-c", "redis-server --requirepass $${REDIS_PASSWORD}"]
@@ -39,7 +39,7 @@ services:
       - overlay
   olap:
     image: metadc/metad-olap:1.0.0
-    container_name: metad-olap
+    container_name: ocap-olap
     restart: unless-stopped
     healthcheck:
       test: curl -m 5 --silent --fail --request GET http://localhost:8080/ | jq --exit-status -n 'inputs | if has("status") then .status=="UP" else false end' > /dev/null || exit 1
@@ -56,8 +56,8 @@ services:
     networks:
       - overlay
   api:
-    image: registry.cn-hangzhou.aliyuncs.com/metad/ocap-api:1.6.15
-    container_name: metad-api
+    image: registry.cn-hangzhou.aliyuncs.com/metad/ocap-api-demo:latest
+    container_name: ocap-api
     environment:
       INSTALLATION_MODE: ${INSTALLATION_MODE:-standalone}
       HOST: ${API_HOST:-api}
@@ -88,8 +88,8 @@ services:
     networks:
       - overlay
   webapp:
-    image: registry.cn-hangzhou.aliyuncs.com/metad/ocap-webapp:1.6.15
-    container_name: metad-webapp
+    image: registry.cn-hangzhou.aliyuncs.com/metad/ocap-webapp-demo:latest
+    container_name: ocap-webapp
     environment:
       HOST: ${WEB_HOST:-webapp}
       PORT: 4200

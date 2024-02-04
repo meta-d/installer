@@ -1,5 +1,5 @@
 version: '3'
-name: 'ocap-with-starrocks'
+name: ocap-with-starrocks
 
 networks:
   overlay:
@@ -16,7 +16,7 @@ services:
     # image: starrocks/allin1-ubuntu:2.5.4
     build:
       context: ./starrocks
-    container_name: "metad-starrocks"
+    container_name: ocap-starrocks
     hostname: "fe"
     ports:
       - 8030:8030
@@ -32,7 +32,7 @@ services:
       - starrocks_net
   db:
     image: postgres:12-alpine
-    container_name: metad-db
+    container_name: ocap-db
     restart: always
     environment:
       POSTGRES_DB: ${DB_NAME:-postgres}
@@ -51,7 +51,7 @@ services:
       - overlay
   redis:
     image: redis:6-alpine
-    container_name: metad-redis
+    container_name: ocap-redis
     mem_limit: 100m
     restart: unless-stopped
     command: ["sh", "-c", "redis-server --requirepass $${REDIS_PASSWORD}"]
@@ -61,7 +61,7 @@ services:
       - overlay
   olap:
     image: metadc/metad-olap:1.0.0
-    container_name: metad-olap
+    container_name: ocap-olap
     restart: unless-stopped
     healthcheck:
       test: curl -m 5 --silent --fail --request GET http://localhost:8080/ | jq --exit-status -n 'inputs | if has("status") then .status=="UP" else false end' > /dev/null || exit 1
@@ -80,7 +80,7 @@ services:
       - starrocks_net
   api:
     image: registry.cn-hangzhou.aliyuncs.com/metad/metad-api:1.6.9
-    container_name: metad-api
+    container_name: ocap-api
     environment:
       INSTALLATION_MODE: with-starrocks
       HOST: ${API_HOST:-api}
@@ -120,7 +120,7 @@ services:
       - starrocks_net
   webapp:
     image: registry.cn-hangzhou.aliyuncs.com/metad/metad-webapp:1.6.9
-    container_name: metad-webapp
+    container_name: ocap-webapp
     environment:
       HOST: ${WEB_HOST:-webapp}
       PORT: 4200
