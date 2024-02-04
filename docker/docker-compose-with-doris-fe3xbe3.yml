@@ -1,4 +1,6 @@
 version: '3'
+name: 'ocap-with-doris-3x'
+
 services:
   fe-01:
     image: "apache/doris:1.2.2-fe-x86_64"

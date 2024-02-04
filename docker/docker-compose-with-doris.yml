@@ -1,7 +1,9 @@
 version: '3'
+name: 'ocap-with-doris'
+
 services:
   fe:
-    image: "apache/doris:1.2.2-fe-x86_64"
+    image: "apache/doris:1.2.2-fe-arm"
     container_name: "metad-fe"
     hostname: "fe"
     environment:
@@ -18,7 +20,7 @@ services:
       doris_net:
         ipv4_address: 172.20.80.2
   be:
-    image: "apache/doris:1.2.2-be-x86_64"
+    image: "apache/doris:1.2.2-be-arm"
     container_name: "metad-be"
     hostname: "be"
     depends_on:
@@ -55,7 +57,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./initdb.d/:/docker-entrypoint-initdb.d/:ro
     # ports:
-    #     - ${DB_PORT:-5432}:5432
+        #     - ${DB_PORT:-5432}:5432
     networks:
       - overlay
   redis:
@@ -65,7 +67,7 @@ services:
     restart: unless-stopped
     command: ["sh", "-c", "redis-server --requirepass $${REDIS_PASSWORD}"]
     # ports:
-    #     - "6379:6379"
+        #     - "6379:6379"
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
     networks:
@@ -74,7 +76,7 @@ services:
     image: metadc/metad-olap:1.0.0
     container_name: metad-olap
     restart: unless-stopped
-    links:
+        links:
       - db:${DB_HOST:-db}
       - fe:${DORIS_HOST:-doris}
     environment:
@@ -86,7 +88,7 @@ services:
       - overlay
       - doris_net
   api:
-    image: registry.cn-hangzhou.aliyuncs.com/metad/metad-api:1.6.9
+    image: registry.cn-hangzhou.aliyuncs.com/metad/ocap-api-demo:latest
     container_name: metad-api
     environment:
       INSTALLATION_MODE: with-doris
@@ -128,7 +130,7 @@ services:
       - overlay
       - doris_net
   webapp:
-    image: registry.cn-hangzhou.aliyuncs.com/metad/metad-webapp:1.6.9
+    image: registry.cn-hangzhou.aliyuncs.com/metad/ocap-webapp-demo:latest
     container_name: metad-webapp
     environment:
       HOST: ${WEB_HOST:-webapp}

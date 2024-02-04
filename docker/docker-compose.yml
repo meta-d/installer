@@ -1,5 +1,5 @@
 version: '3'
-name: 'metad-analytics-cloud'
+name: ocap-standalone
 
 networks:
   overlay:
@@ -8,7 +8,7 @@ volumes:
   postgres_data:
 
 services:
-  db:
+    db:
     image: postgres:12-alpine
     container_name: metad-db
     restart: always
@@ -56,7 +56,7 @@ services:
     networks:
       - overlay
   api:
-    image: registry.cn-hangzhou.aliyuncs.com/metad/metad-api:1.6.9
+    image: registry.cn-hangzhou.aliyuncs.com/metad/ocap-api:1.6.15
     container_name: metad-api
     environment:
       INSTALLATION_MODE: ${INSTALLATION_MODE:-standalone}
@@ -88,7 +88,7 @@ services:
     networks:
       - overlay
   webapp:
-    image: registry.cn-hangzhou.aliyuncs.com/metad/metad-webapp:1.6.9
+    image: registry.cn-hangzhou.aliyuncs.com/metad/ocap-webapp:1.6.15
     container_name: metad-webapp
     environment:
       HOST: ${WEB_HOST:-webapp}
@@ -113,3 +113,4 @@ services:
       - ${WEBAPP_PORT:-80}:4200
     networks:
       - overlay
+  
