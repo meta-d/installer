@@ -76,7 +76,7 @@ services:
     image: metadc/metad-olap:1.0.0
     container_name: metad-olap
     restart: unless-stopped
-        links:
+    links:
       - db:${DB_HOST:-db}
       - fe:${DORIS_HOST:-doris}
     environment:
