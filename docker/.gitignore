@@ -7,7 +7,7 @@
 ./fe*
 ./nginx/log
 /doris
-/public
+volumes/
 .env
 nginx/log/
 

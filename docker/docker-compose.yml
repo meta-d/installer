@@ -56,7 +56,7 @@ services:
     networks:
       - overlay
   api:
-    image: registry.cn-hangzhou.aliyuncs.com/metad/ocap-api-demo:latest
+    image: registry.cn-hangzhou.aliyuncs.com/metad/ocap-api:main
     container_name: ocap-api
     environment:
       INSTALLATION_MODE: ${INSTALLATION_MODE:-standalone}
@@ -84,15 +84,14 @@ services:
     ports:
       - ${API_PORT:-3000}:3000
     volumes:
-      - ./public:/srv/pangolin/apps/
+      - ./volumes/api/public:/srv/pangolin/public
     networks:
       - overlay
   webapp:
-    image: registry.cn-hangzhou.aliyuncs.com/metad/ocap-webapp-demo:latest
+    image: registry.cn-hangzhou.aliyuncs.com/metad/ocap-webapp:main
     container_name: ocap-webapp
     environment:
       HOST: ${WEB_HOST:-webapp}
-      PORT: 4200
       NODE_ENV: ${NODE_ENV:-development}
       API_BASE_URL: ${API_BASE_URL:-http://localhost:3000}
       CLIENT_BASE_URL: ${CLIENT_BASE_URL:-http://localhost:4200}
@@ -110,7 +109,7 @@ services:
     depends_on:
       - api
     ports:
-      - ${WEBAPP_PORT:-80}:4200
+      - ${WEBAPP_PORT:-80}:80
     networks:
       - overlay
   
