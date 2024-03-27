@@ -23,10 +23,10 @@ services:
       - 9030:9030
       - 8040:8040
     volumes:
-      - ./starrocks/fe/meta:/opt/apache-doris/fe/meta
-      - ./starrocks/fe/log:/data/deploy/starrocks/fe/log
-      - ./starrocks/be/storage:/data/deploy/starrocks/be/storage
-      - ./starrocks/be/log:/data/deploy/starrocks/be/log
+      - ./volumes/starrocks/fe/meta:/opt/apache-doris/fe/meta
+      - ./volumes/starrocks/fe/log:/data/deploy/starrocks/fe/log
+      - ./volumes/starrocks/be/storage:/data/deploy/starrocks/be/storage
+      - ./volumes/starrocks/be/log:/data/deploy/starrocks/be/log
       - ./starrocks/initdb.d/:/docker-entrypoint-initdb.d/
     networks:
       - starrocks_net
@@ -79,7 +79,7 @@ services:
       - overlay
       - starrocks_net
   api:
-    image: registry.cn-hangzhou.aliyuncs.com/metad/metad-api:1.6.9
+    image: registry.cn-hangzhou.aliyuncs.com/metad/ocap-api:main
     container_name: ocap-api
     environment:
       INSTALLATION_MODE: with-starrocks
@@ -94,11 +94,11 @@ services:
       API_BASE_URL: ${API_BASE_URL:-http://localhost:3000}
       DEMO: ${DEMO:-true}
       STARROCKS_VERSION: 2.5
-      STARROCKS_HOST: ${STARROCKS_HOST:-metad-starrocks}
+      STARROCKS_HOST: ${STARROCKS_HOST:-ocap-starrocks}
       STARROCKS_PORT: ${STARROCKS_PORT:-9030}
       STARROCKS_USER: ${STARROCKS_USER:-root}
       STARROCKS_PASS: ${STARROCKS_PASS:-}
-      # STARROCKS_DATABASE: ${STARROCKS_DATABASE:-demo}
+      STARROCKS_DATABASE: ${STARROCKS_DATABASE:-demo}
       STARROCKS_API_PORT: ${STARROCKS_API_PORT:-8040}
       SENTRY_DSN: ${SENTRY_DSN:-}
       LOGGER_LEVEL: ${LOGGER_LEVEL:-info}
@@ -114,16 +114,15 @@ services:
     ports:
       - ${API_PORT:-3000}:3000
     volumes:
-      - ./public:/srv/pangolin/apps/
+      - ./volumes/api/public:/srv/pangolin/public
     networks:
       - overlay
       - starrocks_net
   webapp:
-    image: registry.cn-hangzhou.aliyuncs.com/metad/metad-webapp:1.6.9
+    image: registry.cn-hangzhou.aliyuncs.com/metad/ocap-webapp:main
     container_name: ocap-webapp
     environment:
       HOST: ${WEB_HOST:-webapp}
-      PORT: 4200
       NODE_ENV: ${NODE_ENV:-development}
       API_BASE_URL: ${API_BASE_URL:-http://localhost:3000}
       CLIENT_BASE_URL: ${CLIENT_BASE_URL:-http://localhost:4200}
@@ -133,6 +132,7 @@ services:
       DEFAULT_CURRENCY: ${DEFAULT_CURRENCY:-USD}
       API_HOST: ${API_HOST:-api}
       API_PORT: ${API_PORT:-3000}
+      ENABLE_LOCAL_AGENT: false
     env_file:
       - .env
     restart: on-failure
@@ -141,6 +141,6 @@ services:
     depends_on:
       - api
     ports:
-      - ${WEBAPP_PORT:-80}:4200
+      - ${WEBAPP_PORT:-80}:80
     networks:
       - overlay
