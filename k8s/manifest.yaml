@@ -154,14 +154,14 @@ spec:
             - containerPort: 8080
               protocol: TCP
           env:
-            - name: OLAP_REDIS_PASSWORD
+            - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: ocap-secrets
                   key: REDIS_PASSWORD
-            - name: OLAP_REDIS_HOST
+            - name: REDIS_HOST
               value: 'redis'
-            - name: OLAP_REDIS_PORT
+            - name: REDIS_PORT
               value: '6379'
 ---
 apiVersion: storage.k8s.io/v1
