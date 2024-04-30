@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: ocap-api-lb
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
     app: ocap-api
   ports:
@@ -31,7 +31,7 @@ kind: Service
 metadata:
   name: ocap-webapp-lb
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
     app: ocap-webapp
   ports:
@@ -63,11 +63,6 @@ spec:
             - configMapRef:
                 name: config-data
           env:
-            - name: REDIS_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: ocap-secrets
-                  key: REDIS_PASSWORD
             - name: API_HOST
               value: 0.0.0.0
             - name: DEMO
@@ -83,7 +78,7 @@ spec:
             - name: DB_URI
               value: '$DB_URI'
             - name: DB_HOST
-              value: 'postgres-s'
+              value: 'ocap-postgres'
             - name: DB_TYPE
               value: 'postgres'
             - name: REDIS_HOST
@@ -91,7 +86,7 @@ spec:
             - name: REDIS_PORT
               value: '6379'
             - name: OLAP_HOST
-              value: 'olap'
+              value: 'ocap-olap'
             - name: OLAP_PORT
               value: '8080'
             - name: GITHUB_CALLBACK_URL
@@ -136,8 +131,6 @@ spec:
           env:
             - name: ENABLE_LOCAL_AGENT
               value: 'false'
-            - name: API_BASE_URL
-              value: "https://dev-api.mtda.cloud"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -209,7 +202,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: postgres-s
+  name: ocap-postgres
 spec:
   type: ClusterIP
   selector:
@@ -221,11 +214,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: dev-adminer
+  name: db-adminer
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
-    app: dev-adminer
+    app: db-adminer
   ports:
     - protocol: TCP
       port: 8085
@@ -300,9 +293,9 @@ spec:
               value: /var/lib/postgresql/data/pgdata
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
-              name: postgredb-1
+              name: postgredb
       volumes:
-        - name: postgredb-1
+        - name: postgredb
           persistentVolumeClaim:
             claimName: ocap-db-pvc
 ---
@@ -367,7 +360,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: dev-adminer
+  name: db-adminer
 spec:
   strategy:
     rollingUpdate:
@@ -377,11 +370,11 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: dev-adminer
+      app: db-adminer
   template:
     metadata:
       labels:
-        app: dev-adminer
+        app: db-adminer
     spec:
       containers:
         - name: adminer
@@ -394,8 +387,8 @@ kind: ConfigMap
 metadata:
   name: config-data
 data:
-  API_BASE_URL: "https://dev-api.mtda.cloud"
-  CLIENT_BASE_URL: "https://dev.mtda.cloud"
+  API_BASE_URL: "//localhost:3000"
+  CLIENT_BASE_URL: "//localhost"
   DB_USER: "postgres"
   DB_NAME: "ocap"
   DB_PORT: "5432"
