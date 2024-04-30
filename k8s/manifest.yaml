@@ -149,7 +149,7 @@ spec:
       restartPolicy: Always
       containers:
         - name: ocap-olap
-          image: metadc/metad-olap:1.0.0
+          image: registry.cn-hangzhou.aliyuncs.com/metad/ocap-olap:main
           ports:
             - containerPort: 8080
               protocol: TCP
