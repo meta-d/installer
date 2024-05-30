@@ -30,6 +30,9 @@ services:
     image: redis/redis-stack:latest
     container_name: ocap-redis
     restart: unless-stopped
+    ports:
+      # - 6379:6379
+      - 8001:8001
     environment:
       REDIS_ARGS: "--requirepass ${REDIS_PASSWORD:-}"
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
@@ -48,10 +51,10 @@ services:
     links:
       - db:${DB_HOST:-db}
     environment:
-      OLAP_REDIS_DATABASE: 1
-      OLAP_REDIS_HOST: "redis"
-      OLAP_REDIS_PORT: 6379
-      OLAP_REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_DATABASE: 1
+      REDIS_HOST: "redis"
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
     networks:
       - overlay
   api:

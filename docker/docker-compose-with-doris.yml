@@ -1,13 +1,12 @@
-version: '3'
 name: ocap-with-doris
 
 services:
   fe:
-    image: "apache/doris:1.2.2-fe-arm"
+    image: apache/doris:1.2.2-fe-x86_64
     container_name: ocap-fe
     hostname: "fe"
     environment:
-      - FE_SERVERS=fe1:172.20.80.2:9010
+      - FE_SERVERS=fe1:172.20.0.2:9010
       - FE_ID=1
     ports:
       - 8030:8030
@@ -18,16 +17,16 @@ services:
       - ./doris/fe/log:/opt/apache-doris/fe/log
     networks:
       doris_net:
-        ipv4_address: 172.20.80.2
+        ipv4_address: 172.20.0.2
   be:
-    image: "apache/doris:1.2.2-be-arm"
+    image: apache/doris:1.2.2-be-x86_64
     container_name: ocap-be
     hostname: "be"
     depends_on:
       - fe
     environment:
-      - FE_SERVERS=fe1:172.20.80.2:9010
-      - BE_ADDR=172.20.80.3:9050
+      - FE_SERVERS=fe1:172.20.0.2:9010
+      - BE_ADDR=172.20.0.3:9050
       - DORIS_ROOT_PASS=${DORIS_ROOT_PASS:-}
     ports:
       - 8040:8040
@@ -38,7 +37,7 @@ services:
       - ./initdb.d/:/docker-entrypoint-initdb.d/
     networks:
       doris_net:
-        ipv4_address: 172.20.80.3
+        ipv4_address: 172.20.0.3
   db:
     image: postgres:12-alpine
     container_name: ocap-db
@@ -61,29 +60,28 @@ services:
     networks:
       - overlay
   redis:
-    image: redis:6-alpine
+    image: redis/redis-stack:latest
     container_name: ocap-redis
-    mem_limit: 100m
     restart: unless-stopped
-    command: ["sh", "-c", "redis-server --requirepass $${REDIS_PASSWORD}"]
-    # ports:
-        #     - "6379:6379"
+    ports:
+      # - "6379:6379"
+      - 8001:8001
     environment:
+      REDIS_ARGS: "--requirepass ${REDIS_PASSWORD:-}"
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
     networks:
       - overlay
   olap:
-    image: metadc/metad-olap:1.0.0
-    container_name: ocap-olap
+    image: registry.cn-hangzhou.aliyuncs.com/metad/ocap-olap:main
     restart: unless-stopped
     links:
       - db:${DB_HOST:-db}
       - fe:${DORIS_HOST:-doris}
     environment:
-      OLAP_REDIS_DATABASE: 1
-      OLAP_REDIS_HOST: "redis"
-      OLAP_REDIS_PORT: 6379
-      OLAP_REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_DATABASE: 1
+      REDIS_HOST: "redis"
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
     networks:
       - overlay
       - doris_net
@@ -162,6 +160,6 @@ networks:
   doris_net:
     ipam:
       config:
-        - subnet: 172.20.80.0/16
+        - subnet: 172.20.0.0/16
 volumes:
   postgres_data:
