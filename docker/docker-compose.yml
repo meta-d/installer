@@ -8,7 +8,7 @@ volumes:
 
 services:
   db:
-    image: postgres:12-alpine
+    image: pgvector/pgvector:pg12
     container_name: ocap-db
     restart: always
     environment:

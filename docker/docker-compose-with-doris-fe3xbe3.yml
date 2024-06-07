@@ -132,7 +132,7 @@ services:
       doris_net:
         ipv4_address: 172.20.80.11
   db:
-    image: postgres:12-alpine
+    image: pgvector/pgvector:pg12
     container_name: metad-db
     restart: always
     environment:
