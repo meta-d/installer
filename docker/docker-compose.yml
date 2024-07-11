@@ -8,7 +8,7 @@ volumes:
 
 services:
   db:
-    image: pgvector/pgvector:pg12
+    image: registry.cn-hangzhou.aliyuncs.com/metad/pgvector:pg12
     container_name: ocap-db
     restart: always
     environment:
@@ -27,7 +27,7 @@ services:
     networks:
       - overlay
   redis:
-    image: redis/redis-stack:latest
+    image: registry.cn-hangzhou.aliyuncs.com/metad/redis-stack:6.2.6-v15-x86_64
     container_name: ocap-redis
     restart: unless-stopped
     ports:
