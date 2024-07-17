@@ -97,6 +97,7 @@ services:
       - db:${DB_HOST:-db}
     volumes:
       - ./volumes/api/public:/srv/pangolin/public
+    user: "${UID}:${GID}"
     networks:
       - overlay
   webapp:
