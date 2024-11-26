@@ -70,7 +70,7 @@ services:
     networks:
       - overlay
   api:
-    image: registry.cn-hangzhou.aliyuncs.com/metad/ocap-api:main
+    image: registry.cn-hangzhou.aliyuncs.com/metad/ocap-api:2.7.0
     container_name: ocap-api
     environment:
       INSTALLATION_MODE: ${INSTALLATION_MODE:-standalone}
@@ -101,7 +101,7 @@ services:
     networks:
       - overlay
   webapp:
-    image: registry.cn-hangzhou.aliyuncs.com/metad/ocap-webapp:main
+    image: registry.cn-hangzhou.aliyuncs.com/metad/ocap-webapp:2.7.0
     container_name: ocap-webapp
     environment:
       HOST: ${WEB_HOST:-webapp}
@@ -130,7 +130,12 @@ services:
     networks:
       - overlay
   website:
-    image: registry.cn-hangzhou.aliyuncs.com/metad/website:2.4.0
+    image: registry.cn-hangzhou.aliyuncs.com/metad/website:2.7.0
+    restart: on-failure
+    networks:
+      - overlay
+  xpert-home:
+    image: registry.cn-hangzhou.aliyuncs.com/metad/xpert-home:latest
     restart: on-failure
     networks:
       - overlay
@@ -144,6 +149,7 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./certs:/etc/nginx/certs:ro
     depends_on:
+      - xpert-home
       - website
       - webapp
       - api
